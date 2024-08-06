@@ -6,19 +6,13 @@ router.post('/', async (req, res, next) => {
     const { title, type, author, topic, publication_date, pages } = req.body
 
     try {
-        await db.query(
+        const response = await db.query(
             `
             INSERT INTO books (title, type, author, topic, publication_date, pages)
             VALUES ($1, $2, $3, $4, $5, $6)
+            returning *
             `,
             [title, type, author, topic, publication_date, pages]
-        )
-
-        const response = await db.query(
-            `
-            SELECT * FROM books WHERE title = $1
-            `,
-            [title]
         )
         const [book] = response.rows
 
@@ -66,20 +60,14 @@ router.put('/:id', async (req, res, next) => {
     const { title, type, author, topic, publication_date, pages } = req.body
 
     try {
-        await db.query(
+        const response = await db.query(
             `
             UPDATE books
             SET title = $1, type = $2, author = $3, topic = $4, publication_date = $5, pages = $6
             WHERE id = $7
+            returning *
             `,
             [title, type, author, topic, publication_date, pages, id]
-        )
-
-        const response = await db.query(
-            `
-            SELECT * FROM books WHERE id = $1
-            `,
-            [id]
         )
         const [book] = response.rows
 
@@ -93,20 +81,14 @@ router.delete('/:id', async (req, res, next) => {
     const id = parseInt(req.params.id)
 
     try {
-        const deletedBook = await db.query(
-            `
-            SELECT * FROM books WHERE id = $1
-            `,
-            [id]
-        )
-        const [book] = deletedBook.rows
-
-        await db.query(
+        const response = await db.query(
             `
             DELETE FROM books WHERE id = $1
+            returning *
             `,
             [id]
         )
+        const [book] = response.rows
 
         res.status(201).json({ book: book })
     } catch (err) {
